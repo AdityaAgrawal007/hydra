@@ -5,7 +5,12 @@
 Table of Contents
 ---
 
-1. [References](#references)
+1. [System Architecture](#system-architecture)
+2. [References](#references)
+
+System Architecture
+---
+![System Architecture](assets/System%20Architecture.png)
 
 References 
 ---
