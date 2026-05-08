@@ -34,6 +34,7 @@ public class WALTest {
         try {
             WAL engine = new WAL("test_file.txt");
             engine.append(entry);
+            engine.close();
             List<WALEntry> ans_list = new ArrayList<>();
             ans_list.add(entry);
             List<WALEntry> list = recover("test_file.txt");
