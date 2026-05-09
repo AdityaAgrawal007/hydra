@@ -1,7 +1,9 @@
 package org.example.storage.wal;
 
 import java.io.IOException;
-import java.nio.channels.FileChannel; // java new I/O
+import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.Paths;
 import java.nio.ByteBuffer;
@@ -16,10 +18,8 @@ public class WAL {
     }
 
     public int append(WALEntry entry) throws IOException {
-
         int size = 1 + 4 + entry.key().length + 4 + entry.val().length + 8;
-        // buffer = // 0x001(put, delete) + int(4 bytes) - store the length of the key + key +...
-        // client(data) => temporariliy (buffer - temporary) => flushed -> wal(backup) -> memtable (RAM memory) => (sstable disk) (store in hashmap)
+
 
         ByteBuffer buffer = ByteBuffer.allocate(size);
 
@@ -44,6 +44,14 @@ public class WAL {
         channel.close();
     }
 
+    /**
+     * Opens a separate read-only channel because APPEND and READ are mutually exclusive in FileChannel - this
+     * is an OS level constraint as every write automatically seeks to EOF and then there is no point reading from EOF.
+     * On startup or crash recovery, replays all WAL entries in order to reconstruct memtable state.
+     * Known gap: DELETE entries currently replay as memtable removals instead of tombstones. Without
+     * tombstone replay, deleted keys can reappear from SSTables after recovery since compaction
+     * never ran to physically remove them.
+     */
     public static List<WALEntry> recover(String file_path) throws IOException {
         FileChannel recoveryChannel = FileChannel.open(Paths.get(file_path), StandardOpenOption.READ);
         List<WALEntry> list = new ArrayList<>();
@@ -87,4 +95,28 @@ public class WAL {
         recoveryChannel.close();
         return list;
     }
+
+
+    /**
+     * Deletes all WAL entries before the given byte offset by copying everything from
+     * byteOffset to EOF into a temp file, then replacing the original. FileChannel.truncate()
+     * cannot remove from the beginning, only from the end, which is why a rewrite is necessary.
+     */
+    public static void truncateBefore(String file_path, long byteOffset) throws IOException {
+        FileChannel truncationChannel = FileChannel.open(Paths.get(file_path), StandardOpenOption.READ);
+        FileChannel temp = FileChannel.open(Paths.get(file_path + ".tmp"), StandardOpenOption.WRITE, StandardOpenOption.CREATE);
+
+        truncationChannel.transferTo(byteOffset, Long.MAX_VALUE, temp);
+
+        truncationChannel.close();
+        temp.close();
+
+        Files.move(Paths.get(file_path + ".tmp"), Paths.get(file_path), StandardCopyOption.REPLACE_EXISTING);
+    }
+    /**
+     * TODO: WAL truncation - track last truncated byte offset in a checkpoint file (wal_checkpoint.meta).
+     * Checkpoint must be written before truncation, not after, to survive mid-truncation crashes.
+     * Each truncation operates from last checkpoint offset to new flush offset, not from 0.
+     * Triggered by memtable after successful SSTable flush.
+     */
 }
