@@ -1,4 +1,6 @@
 package org.example.storage.memtable;
 
-public class AbstractMemtable {
+public abstract class AbstractMemtable implements Memtable{
+    protected long timestamp;
+    protected long currentSize;
 }
