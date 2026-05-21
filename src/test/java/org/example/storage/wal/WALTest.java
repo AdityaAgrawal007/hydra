@@ -1,5 +1,5 @@
-import org.example.storage.wal.WAL;
-import org.example.storage.wal.WALEntry;
+package org.example.storage.wal;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
