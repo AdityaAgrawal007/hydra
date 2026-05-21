@@ -20,6 +20,12 @@ public class DefaultMemtable extends AbstractMemtable {
      * the array, we use ByteBuffer, but then again serialization doesn't happen right now so we use WALentry directly anyway
      */
     private final ConcurrentSkipListMap<ByteBuffer, WALEntry> entries;
+    private volatile boolean immutable = false;
+
+    @Override
+    public void setImmutable(boolean flag){
+        this.immutable = true;
+    }
 
     public DefaultMemtable() {
         entries = new ConcurrentSkipListMap<>();
@@ -29,6 +35,10 @@ public class DefaultMemtable extends AbstractMemtable {
     public boolean put(ByteBuffer key, WALEntry val) {
         // throwing exceptions for expected validation cases is expensive,
         // so we validate inputs explicitly
+        if(immutable){
+            return false;
+        }
+
         if (key == null || val == null) {
             System.out.println("Key or Value cannot be Null");
             return false;
