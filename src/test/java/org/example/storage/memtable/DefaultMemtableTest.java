@@ -32,6 +32,7 @@ public class DefaultMemtableTest {
         assertArrayEquals(returnedObj.val(), val_byte_arr);
         assertEquals(operation, returnedObj.operation());
         assertEquals(timestamp, returnedObj.timestamp());
+        // missing test case for getFlushSet()
 
         testObject.delete(buffer);
         assertNull(testObject.get(buffer));
