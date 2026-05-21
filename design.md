@@ -239,7 +239,7 @@ Handles copying data to all replica nodes in parallel after the coordinator iden
 
 **Sync On Rejoin** - when a node comes back online, pulls missing writes from peer replicas to catch up
 - Input: node identifier, last known timestamp or version
-- Output: list of missing key-value pairs, applied to local storage engine
+- Output: list of missing key-value pairs, applied to local storage engine.
 
 ---
 
