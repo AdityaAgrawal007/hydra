@@ -1,0 +1,13 @@
+# Hydra node configuration
+# All time values are in milliseconds
+
+wal:
+  # Number of entries buffered in memory before a flush to disk is forced
+  threshold: 7
+
+  # Max time an entry can sit in the buffer before being flushed, regardless of threshold
+  time: 7
+
+memtable:
+  # Maximum total memory the memtable subsystem is allowed to use (in GB)
+  memoryLimit: 7
