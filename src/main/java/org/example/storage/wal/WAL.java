@@ -17,6 +17,7 @@ public class WAL {
         this.channel = FileChannel.open(Paths.get(file_path), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
     }
 
+    // Synchronous flush on every write. Durability over throughput, no buffering, no loss window on crash.
     public int append(WALEntry entry) throws IOException {
         int size = 1 + 4 + entry.key().length + 4 + entry.val().length + 8;
 
