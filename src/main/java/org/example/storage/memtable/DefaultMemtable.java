@@ -21,9 +21,10 @@ public class DefaultMemtable extends AbstractMemtable {
      */
     private final ConcurrentSkipListMap<ByteBuffer, WALEntry> entries;
     private volatile boolean immutable = false;
+    long memtableSize = 0;
 
     @Override
-    public void setImmutable(boolean flag){
+    public void setImmutable(boolean flag) {
         this.immutable = true;
     }
 
@@ -35,7 +36,7 @@ public class DefaultMemtable extends AbstractMemtable {
     public boolean put(ByteBuffer key, WALEntry val) {
         // throwing exceptions for expected validation cases is expensive,
         // so we validate inputs explicitly
-        if(immutable){
+        if (immutable) {
             return false;
         }
 
@@ -45,6 +46,7 @@ public class DefaultMemtable extends AbstractMemtable {
         }
 
         entries.put(key.asReadOnlyBuffer(), val);
+        memtableSize += key.remaining() + val.key().length + val.val().length + 9;
         return true;
     }
 
@@ -56,6 +58,8 @@ public class DefaultMemtable extends AbstractMemtable {
 
     @Override
     public boolean delete(ByteBuffer key) {
+        WALEntry val = entries.get(key);
+        memtableSize -= key.remaining() + val.key().length + val.val().length + 9;
         entries.remove(key);
         return true;
     }
@@ -63,6 +67,17 @@ public class DefaultMemtable extends AbstractMemtable {
     @Override
     public Iterable<WALEntry> getFlushSet() {
         return entries.values();
+    }
+
+    @Override
+    public long size() {
+        return memtableSize;
+    }
+
+    @Override
+    public void discard() {
+        entries.clear();
+        memtableSize = 0;
     }
 
 }
