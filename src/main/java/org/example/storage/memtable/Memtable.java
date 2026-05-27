@@ -22,4 +22,7 @@ public interface Memtable {
     interface Factory {
         Memtable create();
     }
+
+    long size();
+    void discard();
 }
