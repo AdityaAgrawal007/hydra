@@ -30,25 +30,34 @@ public class MemtableManager {
     //        return factory.create();
     //    }
 
-    /*
-    1. lock the memtable
-    1.5 create a new active memtable
-    1.6 switch reference atomically
-    2. trigger flush of the memtable async
-    3. discard the memtable
-     */
-    boolean switchMemtable(Memtable memtable) throws ExecutionException, InterruptedException {
-        memtable.setImmutable(true);
+    boolean switchMemtable() throws ExecutionException, InterruptedException {
+        Memtable newMemtable = factory.create(); // 1.5 create a new active memtable
 
-        Memtable newMemtable = factory.create();
+        AtomicReference<Memtable> largestMemtable = null;
+        long maxSpace = 0;
+        for (Map.Entry<String, AtomicReference<Memtable>> entry : registry.entrySet()) {
+            AtomicReference<Memtable> currentMemtable = entry.getValue();
+            if (currentMemtable.get().size() >= maxSpace) {
+                largestMemtable = currentMemtable;
+                maxSpace = currentMemtable.get().size();
+            }
+        }
 
+        AtomicReference<Memtable> oldLargestMemtable = largestMemtable;
+        largestMemtable.get().setImmutable(true); // 1. lock the memtable
 
+        // 1.6 switch reference atomically
+        assert largestMemtable != null;
+        largestMemtable.getAndSet(newMemtable);
 
-
+        // 2. trigger flush of the memtable async
         MemtableCleaner cleaner = new MemtableCleaner();
-        Future<?> future = cleaner.flushLargestMemtable();
+        Future<?> future = cleaner.flushLargestMemtable(oldLargestMemtable);
         future.get();
+
+        // 3. discard the memtable
+        oldLargestMemtable.get().discard();
+
+        return true;
     }
-
-
 }
