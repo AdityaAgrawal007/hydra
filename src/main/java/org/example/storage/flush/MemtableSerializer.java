@@ -1,4 +1,4 @@
 package org.example.storage.flush;
 
-public class FlushManager {
+public class MemtableSerializer {
 }

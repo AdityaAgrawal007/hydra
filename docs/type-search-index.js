@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"org.example.storage.memtable","l":"Memtable.Factory"},{"p":"org.example.storage.memtable","l":"Memtable"},{"p":"org.example.storage.flush","l":"MemtableCleaner"},{"p":"org.example.storage.wal","l":"WALEntry"}];updateSearchResults();
