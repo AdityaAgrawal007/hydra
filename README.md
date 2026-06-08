@@ -7,10 +7,14 @@ Table of Contents
 
 1. [System Architecture](#system-architecture)
 2. [References](#references)
+3. [Documentation](#Documentation)
 
 System Architecture
 ---
 ![System Architecture](assets/System%20Architecture.png)
+
+## Documentation
+[Javadoc](https://adityaagrawal007.github.io/hydra/)
 
 References 
 ---
