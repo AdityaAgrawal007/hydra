@@ -11,3 +11,6 @@ wal:
 memtable:
   # Maximum total memory the memtable subsystem is allowed to use (in GB)
   memoryLimit: 7
+  configurations:
+    default:
+      class: DefaultMemtable
